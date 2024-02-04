@@ -5,7 +5,7 @@
 #include "Display.h"
 
 
-Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+Adafruit_SSD1306 display = Adafruit_SSD1306(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1, 800000, 100000);
 
 
 void setupDisplay() {

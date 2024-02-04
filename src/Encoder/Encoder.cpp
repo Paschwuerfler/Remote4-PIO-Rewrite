@@ -21,9 +21,7 @@ int OldEncoderValues[4] = {0,0,0,0};
 
 void moved()
 {
-    // one should not read the PPCF8574 in the interrupt routine.
-    flag = true;
-
+    flag = true; // one should not read the PPCF8574 in the interrupt routine.
 }
 
 void setupEncoder() {
@@ -74,16 +72,15 @@ bool encoderTick() {
 
 
 void updateBLEEncoders() {
-    //Serial.println("Updating BLE Encoders");
-
     getEncoderValueArray();
+
     for (int i = 0; i < 4; i++)
     {
-        if(encoderDifferences[i] != 0) {
+        //Serial.println("Loop");
+
+        if((EncoderValues[i] - OldEncoderValues[i]) != 0) {
             bool ModifierPressed = false;
-            if(digitalRead(encoderPins[i]) == LOW) bool ModifierPressed = true;
-
-
+            if(digitalRead(encoderPins[i]) == LOW) {bool ModifierPressed = true;}
             sendEncoders(0, i, (EncoderValues[i] - OldEncoderValues[i]), ModifierPressed);
         }
     }

@@ -5,13 +5,15 @@
 #include "main.h"
 #include "Arduino.h"
 #include "Display/Display.h"
-#include "Graphics/Graphics.h"
 #include "Encoder/Encoder.h"
 #include "LEDs/LEDs.h"
 #include "Bl-HID/Bl-HID.h"
 
 unsigned int encoderUpdateTime = 0;
 unsigned int MaxEncoderUpdateTime = 0;
+
+unsigned int bluetoothUpdateTime = 0;
+unsigned int MaxBluetoothUpdateTime = 0;
 
 unsigned int drawUpdateTime = 0;
 unsigned int oldDrawUpdateTime = 0;
@@ -20,7 +22,9 @@ unsigned int displayUpdateTime = 0;
 
 unsigned int LEDUpdateTime = 0;
 
-
+int loops = 0;
+int lastloopupdate = 0;
+float lastloopFrequency = 0;
 
 unsigned int oldLoopTime = 0;
 unsigned int loopTime = 0;
@@ -43,11 +47,14 @@ void printStats() {
     display.println("Stats:");
 
     display.print("EUT:\t"); display.print(encoderUpdateTime);  display.print("MEUT:\t"); display.println(MaxEncoderUpdateTime);
-    display.print("LF:\t"); display.println(1.0/(oldLoopTime*0.000001));
+    //display.print("LF:\t"); display.println(1.0/(oldLoopTime*0.000001));
+    display.print("LF:\t"); display.println(lastloopFrequency);
 
-    display.print("DRT:\t"); display.println(oldDrawUpdateTime);
+    display.print("DRT:"); display.print(oldDrawUpdateTime); display.print("LUT:"); display.println(LEDUpdateTime);
     display.print("DIT:\t"); display.println(displayUpdateTime);
-    display.print("LUT:\t"); display.println(LEDUpdateTime);
+
+    display.print("BUT:\t"); display.print(bluetoothUpdateTime); display.print("MBUT:\t"); display.println(MaxBluetoothUpdateTime);
+
     //print all encoder values using Decoder.getValue()
 
 
@@ -98,14 +105,13 @@ void loop() {
     encoderUpdateTime = micros() - encoderUpdateTime;
     if (encoderUpdateTime > 10) MaxEncoderUpdateTime = encoderUpdateTime;
 
-    if(encoderUpdateOccured) {
-        updateEncoderDifferences();
-    }
+    if(encoderUpdateOccured) {updateEncoderDifferences();}
 
 
 
     if(millis() % 100 == 0) printStats();
 
+    if(encoderUpdateOccured) {updateEncoderDifferences();}
 
 
     LEDUpdateTime = micros();
@@ -116,12 +122,29 @@ void loop() {
     strip.show();
     LEDUpdateTime = micros() - LEDUpdateTime;
 
+    if(encoderUpdateOccured) {updateEncoderDifferences();}
+
+    bluetoothUpdateTime = micros();
+
     if(bleKeyboard.isConnected()) {
-        if(millis() % 50 == 0)
+        //if(millis() % 50 == 0)
             updateBLEEncoders();
     }
 
+    bluetoothUpdateTime = micros() - bluetoothUpdateTime;
+    if(bluetoothUpdateTime > 10) MaxBluetoothUpdateTime = bluetoothUpdateTime;
+
+
+
     oldLoopTime = micros() - loopTime;
+
+    loops ++;
+
+    if(millis()- lastloopupdate > 1000) {
+        lastloopFrequency = loops / ((millis() - lastloopupdate) * 0.001);
+        loops = 0;
+        lastloopupdate = millis();
+    }
 
 
 
